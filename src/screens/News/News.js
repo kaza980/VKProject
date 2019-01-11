@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import { StyleSheet, Text, View, TextInput, FlatList } from "react-native";
 import NewsPost from "../../components/NewsPost/NewsPost.js";
 import { EmptyComponent } from "../../components/EmptyComponent/EmptyComponent.js";
+import DataService from "../../service/DataService/DataService.js";
+import StoryList from "./StoryList/StoryList.js";
 
 export default class News extends Component<Props> {
   constructor(props) {
@@ -16,13 +18,24 @@ export default class News extends Component<Props> {
         { name: { first: "Mike", last: "Mike" }, title: "123455@gmail.com" },
         { name: { first: "Katy", last: "Katy" }, title: "123456@gmail.com" }
       ],
+      stories: [
+        { path: "../../../android/app/src/main/res/mipmap-hdpi/ic_launcher.png" },
+        { path: "../../../android/app/src/main/res/mipmap-hdpi/ic_launcher.png" },
+        { path: "../../../android/app/src/main/res/mipmap-hdpi/ic_launcher.png" },
+        { path: "../../../android/app/src/main/res/mipmap-hdpi/ic_launcher.png" },
+        { path: "../../../android/app/src/main/res/mipmap-hdpi/ic_launcher.png" },
+        { path: "../../../android/app/src/main/res/mipmap-hdpi/ic_launcher.png" }
+      ],
       error: null,
       loadingPosts: [],
       page: 0,
-      isNewsRefreshing: false
+      loadingPostsCount:10,
+      isNewsRefreshing: false,
+      dataService: new DataService(),
+      isLoadMore: false
     };
 
-    this.getNewsPosts = this.getNewsPosts.bind(this);
+    //this.getNewsPosts = this.getNewsPosts.bind(this);
     this.getMoreNewsPosts = this.getMoreNewsPosts.bind(this);
     //this.onRefresh = this.onRefresh.bind(this);
   }
@@ -37,24 +50,35 @@ export default class News extends Component<Props> {
     this.setState({
       isNewsRefreshing: true
     });
-    this.getNewsPosts();
-  }
-
-  getNewsPosts() {
-    //это рефреш
-    //здесь будет подгрузка данных с сервера
+    var loadingPosts = this.state.dataService.getNewsPosts({page: 0, count: this.state.loadingPostsCount});
     this.setState({
-      page: 0,
-      loadingPosts: []
+      loadingPosts: loadingPosts,
+      page: 1,
+      isNewsRefreshing: false
     });
-    //console.log("page: "+this.state.page+" loading: "+this.state.loadingPosts);
-    this.getMoreNewsPosts();
-    console.log(this.state.loadingPosts);
   }
 
   getMoreNewsPosts() {
+    console.log("GETMORE NEWS");
+    this.setState({
+      isNewsRefreshing: true
+    });
+    //это рефреш
+    //здесь будет подгрузка данных с сервера
+    //console.log("page: "+this.state.page+" loading: "+this.state.loadingPosts);
+    //this.getMoreNewsPosts();
+    var loadingPosts = this.state.dataService.getNewsPosts({page: this.state.page, count: this.state.loadingPostsCount});
+  this.setState({
+    loadingPosts: this.state.loadingPosts.concat(loadingPosts),
+    isNewsRefreshing: false,
+    page: this.state.page + 1
+  });
+    console.log("page: "+ this.state.page);
+  }
+
+/*  getMoreNewsPosts() {
     //при достижении конца списка
-    console.log("getMoreNewPosts");
+  /*  console.log("getMoreNewPosts");
     for (
       var i = this.state.page * 10;
       i < this.state.page * 10 + 10 && i < this.state.data.length;
@@ -68,7 +92,7 @@ export default class News extends Component<Props> {
       this.setState({ loadingPosts: joined });
       /*this.setState({
         loadingPosts: ['1','2','3']
-      });*/
+      });
       console.log("lPLength " + this.state.loadingPosts.length);
     }
 
@@ -79,13 +103,13 @@ export default class News extends Component<Props> {
       "2. page: " + this.state.page + " loading: " + this.state.loadingPosts
     );
     return this.state.loadingPosts;
-  }
+  }*/
 
   renderHeader = () => {
     return (
       <View>
         <Text>What's new?</Text>
-        <TextInput placefolder="What's new?" />
+        <StoryList stories = {this.state.stories} />
       </View>
     );
   };
